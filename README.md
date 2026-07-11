@@ -7,8 +7,7 @@ A Spring Boot backend application that demonstrates a clean and flexible payment
 
 ## Configuration Before Running the Application
 
-Sensitive infrastructure values are intentionally not included in the repository. Before starting the application, open:
-Then replace the placeholder values with your own configuration.
+Sensitive infrastructure values are intentionally not included in the repository. Before starting the application, open application.yaml then replace the placeholder values with your own configuration.
 
 
 ### Shop and Invoice Configuration
