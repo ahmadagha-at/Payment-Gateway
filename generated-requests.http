@@ -1,0 +1,111 @@
+### Create User 1 (add in user1 your real email to get the email with the Bill)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "name": "Felix",
+  "email": "john2.doe@example.com"
+}
+
+### Create User 2
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com"
+}
+
+### Create User 3
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "name": "Anna Smith",
+  "email": "anna.smith@web.com"
+}
+
+### Create User 4
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "name": "Thomas Hacker",
+  "email": "thomas.hacker@gmail.com"
+}
+
+### Create Product 1
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "title": "Mechanical Keyboard",
+  "price": 149.99
+}
+
+### Create Product 2
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "title": "Ergonomic Mouse",
+  "price": 79.50
+}
+
+### Create Product 3
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "title": "4K UltraWide Monitor",
+  "price": 449.00
+}
+
+### Create Product 4
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "title": "USB-C Docking Station",
+  "price": 59.99
+}
+
+### Create Product 5 (This one will be deleted later!)
+POST http://localhost:8080/products
+Content-Type: application/json
+
+{
+  "title": "Old HDMI Cable (Defective)",
+  "price": 9.99
+}
+
+### Fetch all users (Should display all 4 users)
+GET http://localhost:8080/users
+
+### Fetch all products (Should display all 5 products initially)
+GET http://localhost:8080/products
+
+### Fetch specific user
+GET http://localhost:8080/users/1
+
+### Delete the 5th product
+DELETE http://localhost:8080/products/5
+
+### Final check for products (Should display exactly 4 clean products)
+GET http://localhost:8080/products
+
+### -----------------------------------------------------------------------------------
+
+### Checkout
+POST http://localhost:8080/orders/checkout
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productIds": [4, 3, 2],
+  "paymentMethod": "paypal"
+}
+
+### refund
+POST http://localhost:8080/orders/cancel/1
+Content-Type: application/json

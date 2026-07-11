@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: Payment-Gateway
+
+## change prod and dev(!prod)
+  profiles:
+    active: prod
+
+## database connection
+  datasource:
+    url: jdbc:postgresql://localhost:5432/YOUR_DB_NAME
+    driver-class-name: org.postgresql.Driver
+    username: YOUR_POSTGRES_USERNAME
+    password: YOUR_POSTGRES_PASSWORD
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+## for help: https://www.geeksforgeeks.org/springboot/spring-boot-sending-email-via-smtp/
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your_16_digit_gmail_app_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+##change value for other currency or shop-name
+shop:
+  billing:
+    company-name: TheShop
+    currency: EUR
