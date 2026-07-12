@@ -102,10 +102,10 @@ Content-Type: application/json
 
 {
   "userId": 1,
-  "productIds": [4, 3, 2],
-  "paymentMethod": "paypal"
+  "productIds": [2, 1],
+  "paymentMethod": "stripe"
 }
 
 ### refund
-POST http://localhost:8080/orders/cancel/1
+POST http://localhost:8080/orders/cancel/12
 Content-Type: application/json

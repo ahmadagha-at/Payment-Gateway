@@ -14,10 +14,7 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "orders")
@@ -29,6 +26,7 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @ManyToOne
@@ -49,4 +47,5 @@ public class Order {
     private String paymentStatus; // PENDING, PAID, FAILED, REFUNDED
 
     private String paymentMethod;
+
 }

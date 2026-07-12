@@ -8,10 +8,10 @@ spring:
 
 ## database connection
   datasource:
-    url: jdbc:postgresql://localhost:5432/YOUR_DB_NAME
+    url: jdbc:postgresql://localhost:5432/Payment-Gateway-db #YOUR_DB_NAME
     driver-class-name: org.postgresql.Driver
-    username: YOUR_POSTGRES_USERNAME
-    password: YOUR_POSTGRES_PASSWORD
+    username: postgres #YOUR_POSTGRES_USERNAME
+    password: test1234 #YOUR_POSTGRES_PASSWORD
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -23,8 +23,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: your-email@gmail.com
-    password: your_16_digit_gmail_app_password
+    username: ahmadagha088@gmail.com #your-email@gmail.com
+    password: dnap noai yqun zowy #your_16_digit_gmail_app_password
     properties:
       mail:
         smtp:

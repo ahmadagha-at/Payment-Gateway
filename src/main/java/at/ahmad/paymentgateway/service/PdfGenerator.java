@@ -33,6 +33,11 @@ public class PdfGenerator {
             PdfWriter.getInstance(document, out);
             document.open();
 
+            // Dynamische Texterkennung basierend auf dem Order-Status
+            boolean isRefunded = "REFUNDED".equals(order.getPaymentStatus());
+            String documentTitle = isRefunded ? "CANCELLATION CREDIT" : "INVOICE";
+            String numberPrefix = isRefunded ? "CN-" : "INV-"; // Credit Note vs Invoice
+
             // Fonts
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, new Color(26, 54, 93));
             Font companyFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.GRAY);
@@ -45,13 +50,13 @@ public class PdfGenerator {
             compName.setAlignment(Element.ALIGN_LEFT);
             document.add(compName);
 
-            Paragraph title = new Paragraph("INVOICE", titleFont);
+            Paragraph title = new Paragraph(documentTitle, titleFont); // Dynamischer Titel
             title.setAlignment(Element.ALIGN_LEFT);
             title.setSpacingAfter(20);
             document.add(title);
 
             // Info & Customer
-            document.add(new Paragraph("Invoice Number: INV-" + order.getId(), boldFont));
+            document.add(new Paragraph("Document Number: " + numberPrefix + order.getId(), boldFont));
             document.add(new Paragraph("Date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")), normalFont));
             document.add(new Paragraph("Payment Status: " + order.getPaymentStatus(), boldFont));
             document.add(new Paragraph(" ", normalFont)); // spacer
@@ -80,12 +85,14 @@ public class PdfGenerator {
             h2.setHorizontalAlignment(Element.ALIGN_RIGHT);
             table.addCell(h2);
 
-            // Populate items
             boolean alternate = false;
             Color altColor = new Color(247, 250, 252); // Very light gray
             for (Product product : order.getProducts()) {
                 PdfPCell cellTitle = new PdfPCell(new Phrase(product.getTitle(), normalFont));
-                PdfPCell cellPrice = new PdfPCell(new Phrase(String.format("%.2f %s", product.getPrice(), currency), normalFont));
+
+                // Preisvorzeichen anpassen, falls es eine Gutschrift ist
+                double displayPrice = isRefunded ? -product.getPrice() : product.getPrice();
+                PdfPCell cellPrice = new PdfPCell(new Phrase(String.format("%.2f %s", displayPrice, currency), normalFont));
                 cellPrice.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
                 cellTitle.setPadding(6);
@@ -102,9 +109,11 @@ public class PdfGenerator {
 
             document.add(table);
 
-            // Add Total
+            double totalAmount = isRefunded ? -order.getTotalAmount() : order.getTotalAmount();
+            String totalLabel = isRefunded ? "Total Refund Amount: " : "Total Amount: ";
+
             Paragraph total = new Paragraph(
-                    String.format("Total Amount: %.2f %s", order.getTotalAmount(), currency),
+                    String.format("%s %.2f %s", totalLabel, totalAmount, currency),
                     FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(26, 54, 93))
             );
             total.setAlignment(Element.ALIGN_RIGHT);
@@ -115,7 +124,7 @@ public class PdfGenerator {
         } catch (DocumentException e) {
             throw new RuntimeException("Document creation error during PDF generation", e);
         } catch (Exception e) {
-            throw new RuntimeException("Error generating the PDF invoice", e);
+            throw new RuntimeException("Error generating the PDF document", e);
         }
     }
 }
