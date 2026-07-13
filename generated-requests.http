@@ -13,7 +13,7 @@ Content-Type: application/json
 
 {
   "name": "John Doe",
-  "email": "ahmadagha088@gmail.com"
+  "email": "john.doe@example.com"
 }
 
 ### Create User 3
@@ -101,11 +101,11 @@ POST http://localhost:8080/orders/checkout
 Content-Type: application/json
 
 {
-  "userId": 5,
+  "userId": 1,
   "productIds": [2, 1],
   "paymentMethod": "stripe"
 }
 
 ### refund
-POST http://localhost:8080/orders/cancel/16
+POST http://localhost:8080/orders/cancel/1
 Content-Type: application/json

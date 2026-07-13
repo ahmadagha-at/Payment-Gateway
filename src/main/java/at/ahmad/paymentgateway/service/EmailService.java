@@ -42,8 +42,8 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("Your Order Has Been Cancelled & will be Refunded");
-            helper.setText("Hello,\n\nYour order has been successfully cancelled and your payment will be refunded. Please find your cancellation credit note attached to this email as a PDF.\n\nBest regards,\nYour Web Shop Team");
+            helper.setSubject("Your Order Has Been Cancelled");
+            helper.setText("Hello,\n\nYour order has been successfully cancelled and If your payment has already been completed, your refund will be processed shortly. Please find your cancellation credit note attached to this email as a PDF.\n\nBest regards,\nYour Web Shop Team");
 
             helper.addAttachment("cancellation_credit.pdf", new ByteArrayResource(pdfBytes));
 

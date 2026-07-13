@@ -119,7 +119,7 @@ The project also contains a commented `PaymentConfig` class that demonstrates an
 
 ## PDF Invoice Generation and Email Delivery
 
-After a successful payment, `InvoiceService` delegates invoice creation to a custom `PdfGenerator` bean.
+After a successful payment or refund, `InvoiceService` delegates invoice creation to a custom `PdfGenerator` bean.
 
 `InvoiceConfig` reads the shop name and currency from `application.yaml` and uses them to construct the generator:
 
@@ -138,9 +138,9 @@ The `checkout` method:
 5. resolves the appropriate payment provider
 6. processes the payment
 7. updates the order to `PAID` or `FAILED`
-8. generates the PDF invoice after a successful payment
-9. sends the invoice to the user's email address
-10. saves the final order state
+8. publishes a `CheckoutEvent` after a successful payment
+9. commits the transaction
+10. generates the PDF invoice and sends the email through a transactional event listener
 
 ### Cancellation and Refund Flow
 
@@ -158,6 +158,20 @@ Both checkout and cancellation are annotated with:
 ```java
 @Transactional
 ```
+füge diesen Abschnitt ein:
+
+````md
+### Transactional Event Processing
+
+The project uses Spring's event mechanism to separate the order workflow from post-processing tasks.
+
+After a successful checkout or cancellation, `OrderService` publishes a domain event using `ApplicationEventPublisher`.
+
+`OrderEventListener` listens for these events with:
+
+```java
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+````
 
 ---
 
@@ -221,23 +235,3 @@ POST http://localhost:8080/orders/cancel/1
 ```
 
 Replace `1` with the actual order ID when necessary.
-
-
-## Possible Future Improvements
-
-- integrate the official Stripe SDK
-- integrate the official PayPal SDK
-- store external payment and refund transaction IDs
-- use `BigDecimal` instead of `double` for monetary values
-- introduce enums for payment and order statuses
-- validate that every requested product ID exists
-- move checkout request models into dedicated DTO classes
-- add idempotency protection for checkout and refund requests
-- process provider webhooks
-- add retry handling for email delivery
-- use environment variables or secret management for credentials
-- add unit, integration, repository, and controller tests
-- add Flyway or Liquibase database migrations
-- add Docker and Docker Compose for PostgreSQL and the application
-- add OpenAPI/Swagger documentation
-- add authentication and authorization with Spring Security
