@@ -1,23 +1,19 @@
 package at.ahmad.paymentgateway.service;
 
 import at.ahmad.paymentgateway.model.Order;
+import at.ahmad.paymentgateway.model.Order.PaymentStatus;
 import at.ahmad.paymentgateway.model.Product;
 import at.ahmad.paymentgateway.model.User;
 import at.ahmad.paymentgateway.payment.PaymentProvider;
 import at.ahmad.paymentgateway.repository.OrderRepository;
 import at.ahmad.paymentgateway.repository.ProductRepository;
 import at.ahmad.paymentgateway.repository.UserRepository;
-
-import java.math.BigDecimal;
 import java.util.List;
-
 import at.ahmad.paymentgateway.transactionalEventListeners.CancelOrderEvent;
 import at.ahmad.paymentgateway.transactionalEventListeners.CheckoutEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 public class OrderService {
@@ -27,7 +23,6 @@ public class OrderService {
     private final OrderRepository orderRepo;
     private final ApplicationEventPublisher eventPublisher;
 
-    // Primary provider, zum Beispiel Stripe
     private final PaymentProvider defaultPrimaryProvider;
     private final List<PaymentProvider> allActiveProviders;
 
@@ -57,7 +52,6 @@ public class OrderService {
                 "Checkout process initiated for User ID: " + userId
         );
 
-        // 1. User laden
         User user = userRepo.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
@@ -65,7 +59,7 @@ public class OrderService {
                         )
                 );
 
-        // 2. Produkte laden
+
         List<Product> products = productRepo.findAllById(productIds);
 
         if (products.isEmpty()) {
@@ -78,17 +72,15 @@ public class OrderService {
                 .mapToDouble(Product::getPrice)
                 .sum();
 
-        // 3. Order zunächst mit Status PENDING speichern
         Order order = Order.builder()
                 .user(user)
                 .products(products)
                 .totalAmount(totalAmount)
-                .paymentStatus("PENDING")
+                .paymentStatus(Order.PaymentStatus.PENDING)
                 .build();
 
         order = orderRepo.save(order);
 
-        // 4. PaymentProvider bestimmen
         PaymentProvider provider;
 
         PaymentProvider mockProvider = allActiveProviders.stream()
@@ -141,13 +133,12 @@ public class OrderService {
             );
         }
 
-        // 5. Zahlung durchführen
         boolean paymentSuccess =
                 provider.processPayment(totalAmount);
 
         if (paymentSuccess) {
 
-            order.setPaymentStatus("PAID");
+            order.setPaymentStatus(PaymentStatus.PAID);
             order.setPaymentMethod(provider.getName());
 
             System.out.println(
@@ -158,20 +149,13 @@ public class OrderService {
 
             order = orderRepo.save(order);
 
-            /*
-             * Der OrderService sendet keine E-Mail direkt.
-             * Er veröffentlicht nur das Event.
-             *
-             * Der OrderEventListener sendet die E-Mail
-             * nach dem erfolgreichen Commit.
-             */
             eventPublisher.publishEvent(
                     new CheckoutEvent(order.getId())
             );
 
         } else {
 
-            order.setPaymentStatus("FAILED");
+            order.setPaymentStatus(PaymentStatus.FAILED);
 
             System.err.println(
                     "[WARNING] Payment failed. Order ID "
@@ -188,6 +172,7 @@ public class OrderService {
     @Transactional
     public Order cancelOrder(Long orderId) {
 
+
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
@@ -197,7 +182,19 @@ public class OrderService {
                         )
                 );
 
-        if ("PAID".equals(order.getPaymentStatus())) {
+        if ("REFUNDED".equals(order.getPaymentStatus().toString())) {
+            throw new IllegalStateException(
+                    "Order has already been refunded."
+            );
+        }
+
+        if ("CANCELLED".equals(order.getPaymentStatus().toString())) {
+            throw new IllegalStateException(
+                    "Order has already been cancelled."
+            );
+        }
+
+        if ("PAID".equals(order.getPaymentStatus().toString())) {
 
             System.out.println(
                     "Order " + orderId
@@ -219,7 +216,7 @@ public class OrderService {
 
             if (refundSuccess) {
 
-                order.setPaymentStatus("REFUNDED");
+                order.setPaymentStatus(PaymentStatus.REFUNDED);
 
                 System.out.println(
                         "Refund successful for Order ID: "
@@ -228,18 +225,13 @@ public class OrderService {
 
                 order = orderRepo.save(order);
 
-                /*
-                 * Nach erfolgreichem Commit reagiert der
-                 * OrderEventListener und sendet die
-                 * Stornierungs-/Refund-E-Mail.
-                 */
                 eventPublisher.publishEvent(
                         new CancelOrderEvent(order.getId())
                 );
 
             } else {
 
-                order.setPaymentStatus("REFUND_FAILED");
+                order.setPaymentStatus(PaymentStatus.REFUNDED_FAILED);
 
                 System.err.println(
                         "Refund failed for Order ID: "
@@ -251,14 +243,9 @@ public class OrderService {
 
         } else {
 
-            order.setPaymentStatus("CANCELLED");
+            order.setPaymentStatus(PaymentStatus.CANCELLED);
             order = orderRepo.save(order);
 
-            /*
-             * Diese Zeile hinzufügen, falls auch bei einer
-             * nicht bezahlten Order eine Stornierungs-E-Mail
-             * gesendet werden soll.
-             */
             eventPublisher.publishEvent(
                     new CancelOrderEvent(order.getId())
             );
@@ -267,16 +254,10 @@ public class OrderService {
         return order;
     }
 
-    /**
-     * Diese Methode wird vom OrderEventListener nach dem Commit aufgerufen.
-     *
-     * Die neue Read-only-Transaktion hält den Persistence Context offen,
-     * während User und Products geladen werden.
-     */
     @Transactional(readOnly = true)
     public Order getOrderByIdWithDetails(Long id) {
 
-        Order order = orderRepo.findById(id)
+        return orderRepo.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Order with ID "
@@ -284,15 +265,6 @@ public class OrderService {
                                         + " not found."
                         )
                 );
-
-        /*
-         * Lazy-Beziehungen innerhalb der laufenden Transaktion laden.
-         * Dadurch kann der Listener danach auf User und Products zugreifen.
-         */
-        order.getUser().getEmail();
-        order.getProducts().size();
-
-        return order;
     }
 }
 

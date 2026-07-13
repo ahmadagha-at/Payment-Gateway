@@ -1,15 +1,8 @@
 package at.ahmad.paymentgateway.model;
 
 import at.ahmad.paymentgateway.payment.PaymentProvider;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -44,8 +37,12 @@ public class Order {
 
     private double totalAmount;
 
-    private String paymentStatus; // PENDING, PAID, FAILED, REFUNDED
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     private String paymentMethod;
 
+    public enum PaymentStatus {
+        PENDING, PAID, FAILED, REFUNDED, CANCELLED, REFUNDED_FAILED
+    }
 }

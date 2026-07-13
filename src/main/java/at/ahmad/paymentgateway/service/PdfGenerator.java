@@ -33,8 +33,7 @@ public class PdfGenerator {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            // Dynamische Texterkennung basierend auf dem Order-Status
-            boolean isRefunded = "REFUNDED".equals(order.getPaymentStatus());
+            boolean isRefunded = "REFUNDED".equals(order.getPaymentStatus().toString());
             String documentTitle = isRefunded ? "CANCELLATION CREDIT" : "INVOICE";
             String numberPrefix = isRefunded ? "CN-" : "INV-"; // Credit Note vs Invoice
 

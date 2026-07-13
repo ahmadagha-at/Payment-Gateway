@@ -14,7 +14,6 @@ spring:
     password: YOUR_POSTGRES_PASSWORD
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
